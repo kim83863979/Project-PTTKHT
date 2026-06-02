@@ -1,0 +1,30 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(50, 25px);
+    width: fit-content;
+    margin: 20px auto;
+}
+
+.cell {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.wall {
+    background-color: black;
+}
+
+.start {
+    background-color: green;
+}
+
+.end {
+    background-color: red;
+}
