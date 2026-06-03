@@ -5,15 +5,15 @@ const LOCKABLE = [
   ...document.querySelectorAll("input[type=range]"),
 ];
 
-// ── Khóa toàn bộ nút bấm và thanh trượt 
+// ── Khóa toàn bộ nút bấm và thanh trượt
 function lockUI() {
   LOCKABLE.forEach((el) => {
     el.disabled = true;
-    el.classList.add("ui-locked");   // tuỳ chọn: thêm class để style CSS
+    el.classList.add("ui-locked"); // tuỳ chọn: thêm class để style CSS
   });
 }
 
-// ── Mở khóa lại khi animation hoàn thành 
+// ── Mở khóa lại khi animation hoàn thành
 function unlockUI() {
   LOCKABLE.forEach((el) => {
     el.disabled = false;
@@ -21,21 +21,21 @@ function unlockUI() {
   });
 }
 
-// ── Chạy thuật toán + animation 
+// ── Chạy thuật toán + animation
 async function runAlgorithm() {
-  lockUI();                              // ← khóa trước khi bắt đầu
+  lockUI(); // ← khóa trước khi bắt đầu
 
   try {
-    const result = await fetchAlgorithm();          // gọi API Python
-    await animateVisited(result.visited_order);     // loang màu từng ô
-    await animatePath(result.path);                 // tô đường đi
-    updateDashboard(result);                        // cập nhật số liệu
+    const result = await fetchAlgorithm(); // gọi API Python
+    await animateVisited(result.visited_order); // loang màu từng ô
+    await animatePath(result.path); // tô đường đi
+    updateDashboard(result); // cập nhật số liệu
   } finally {
-    unlockUI();                          // ← mở khóa khi xong (kể cả lỗi)
+    unlockUI(); // ← mở khóa khi xong (kể cả lỗi)
   }
 }
 
-// ── Animation: loang màu các ô đã thăm 
+// ── Animation: loang màu các ô đã thăm
 function animateVisited(visitedOrder) {
   return new Promise((resolve) => {
     let i = 0;
@@ -56,7 +56,7 @@ function animateVisited(visitedOrder) {
   });
 }
 
-// ── Animation: tô màu đường đi tối ưu 
+// ── Animation: tô màu đường đi tối ưu
 function animatePath(path) {
   return new Promise((resolve) => {
     let i = 0;
@@ -77,10 +77,10 @@ function animatePath(path) {
   });
 }
 
-// ── Gọi API Python (FastAPI/Flask) 
+// ── Gọi API Python (FastAPI/Flask)
 async function fetchAlgorithm() {
   const algorithm = document.getElementById("algo-select").value;
-  const gridData = getGridData();   // hàm lấy trạng thái lưới hiện tại
+  const gridData = getGridData(); // hàm lấy trạng thái lưới hiện tại
 
   const response = await fetch("/api/solve", {
     method: "POST",
@@ -92,19 +92,21 @@ async function fetchAlgorithm() {
   return response.json();
 }
 
-// ── Cập nhật dashboard số liệu 
+// ── Cập nhật dashboard số liệu
 function updateDashboard(result) {
   document.getElementById("stat-cost").textContent = result.cost;
-  document.getElementById("stat-visited").textContent = result.visited_order.length;
-  document.getElementById("stat-time").textContent = result.time_ms.toFixed(3) + " ms";
+  document.getElementById("stat-visited").textContent =
+    result.visited_order.length;
+  document.getElementById("stat-time").textContent =
+    result.time_ms.toFixed(3) + " ms";
 }
 
-// ── Helper: lấy DOM element của ô (row, col) 
+// ── Helper: lấy DOM element của ô (row, col)
 function getCellElement(r, c) {
   return document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
 }
 
-// ── Helper: đọc trạng thái lưới từ DOM 
+// ── Helper: đọc trạng thái lưới từ DOM
 function getGridData() {
   const cells = document.querySelectorAll(".cell");
   return Array.from(cells).map((el) => ({
@@ -118,14 +120,6 @@ function getGridData() {
 // ── Gắn sự kiện nút Run ──────────────────────────────────────────────────────
 document.getElementById("btn-run").addEventListener("click", runAlgorithm);
 
-
-
-
-
-
-
-
-
 //VÂN ANH
 
 /*BIẾN TOÀN CỤC*/
@@ -137,203 +131,159 @@ let dragType = null;
 /*VẼ TƯỜNG + KÉO THẢ START/END*/
 
 function attachCellEvents(cell) {
+  // Vẽ/Xóa tường
+  cell.addEventListener("mousedown", () => {
+    if (isAnimating) return;
 
-    // Vẽ/Xóa tường
-    cell.addEventListener("mousedown", () => {
+    if (cell.classList.contains("start") || cell.classList.contains("end"))
+      return;
 
-        if (isAnimating) return;
+    isMouseDown = true;
 
-        if (
-            cell.classList.contains("start") ||
-            cell.classList.contains("end")
-        ) return;
+    cell.classList.toggle("wall");
+  });
 
-        isMouseDown = true;
+  cell.addEventListener("mouseover", () => {
+    if (isAnimating) return;
 
-        cell.classList.toggle("wall");
-    });
+    if (!isMouseDown) return;
 
-    cell.addEventListener("mouseover", () => {
+    if (cell.classList.contains("start") || cell.classList.contains("end"))
+      return;
 
-        if (isAnimating) return;
+    cell.classList.add("wall");
+  });
 
-        if (!isMouseDown) return;
+  // Kéo Start / End
+  cell.addEventListener("dragstart", () => {
+    if (cell.classList.contains("start")) {
+      dragType = "start";
+    }
 
-        if (
-            cell.classList.contains("start") ||
-            cell.classList.contains("end")
-        ) return;
+    if (cell.classList.contains("end")) {
+      dragType = "end";
+    }
+  });
 
-        cell.classList.add("wall");
-    });
+  cell.addEventListener("dragover", (e) => {
+    e.preventDefault();
+  });
 
-    // Kéo Start / End
-    cell.addEventListener("dragstart", () => {
+  cell.addEventListener("drop", (e) => {
+    e.preventDefault();
 
-        if (cell.classList.contains("start")) {
-            dragType = "start";
-        }
+    if (isAnimating) return;
 
-        if (cell.classList.contains("end")) {
-            dragType = "end";
-        }
-    });
+    if (cell.classList.contains("wall")) return;
 
-    cell.addEventListener("dragover", (e) => {
-        e.preventDefault();
-    });
+    if (dragType === "start") {
+      const oldStart = document.querySelector(".start");
 
-    cell.addEventListener("drop", (e) => {
+      if (oldStart) {
+        oldStart.classList.remove("start");
+      }
 
-        e.preventDefault();
+      cell.classList.add("start");
+      cell.draggable = true;
+    }
 
-        if (isAnimating) return;
+    if (dragType === "end") {
+      const oldEnd = document.querySelector(".end");
 
-        if (cell.classList.contains("wall")) return;
+      if (oldEnd) {
+        oldEnd.classList.remove("end");
+      }
 
-        if (dragType === "start") {
-
-            const oldStart =
-                document.querySelector(".start");
-
-            if (oldStart) {
-                oldStart.classList.remove("start");
-            }
-
-            cell.classList.add("start");
-            cell.draggable = true;
-        }
-
-        if (dragType === "end") {
-
-            const oldEnd =
-                document.querySelector(".end");
-
-            if (oldEnd) {
-                oldEnd.classList.remove("end");
-            }
-
-            cell.classList.add("end");
-            cell.draggable = true;
-        }
-    });
+      cell.classList.add("end");
+      cell.draggable = true;
+    }
+  });
 }
 
 /*THẢ CHUỘT*/
 
 document.addEventListener("mouseup", () => {
-    isMouseDown = false;
+  isMouseDown = false;
 });
 
 /*XÓA ANIMATION CŨ*/
 
 function clearAnimation() {
-
-    document
-        .querySelectorAll(".visited, .path")
-        .forEach(cell => {
-
-            cell.classList.remove("visited");
-            cell.classList.remove("path");
-        });
+  document.querySelectorAll(".visited, .path").forEach((cell) => {
+    cell.classList.remove("visited");
+    cell.classList.remove("path");
+  });
 }
 
 /*KHÓA / MỞ KHÓA UI*/
 
 const LOCKABLE = [
-    ...document.querySelectorAll("button"),
-    ...document.querySelectorAll("input[type=range]")
+  ...document.querySelectorAll("button"),
+  ...document.querySelectorAll("input[type=range]"),
 ];
 
 function lockUI() {
-
-    LOCKABLE.forEach(el => {
-
-        el.disabled = true;
-        el.classList.add("ui-locked");
-    });
+  LOCKABLE.forEach((el) => {
+    el.disabled = true;
+    el.classList.add("ui-locked");
+  });
 }
 
 function unlockUI() {
-
-    LOCKABLE.forEach(el => {
-
-        el.disabled = false;
-        el.classList.remove("ui-locked");
-    });
+  LOCKABLE.forEach((el) => {
+    el.disabled = false;
+    el.classList.remove("ui-locked");
+  });
 }
 
 /*LẤY DỮ LIỆU GRID*/
 
 function getGridData() {
+  const cells = document.querySelectorAll(".cell");
 
-    const cells =
-        document.querySelectorAll(".cell");
+  return Array.from(cells).map((el) => ({
+    row: parseInt(el.dataset.row),
 
-    return Array.from(cells).map(el => ({
+    col: parseInt(el.dataset.col),
 
-        row: parseInt(el.dataset.row),
+    is_wall: el.classList.contains("wall"),
 
-        col: parseInt(el.dataset.col),
+    is_start: el.classList.contains("start"),
 
-        is_wall:
-            el.classList.contains("wall"),
+    is_end: el.classList.contains("end"),
 
-        is_start:
-            el.classList.contains("start"),
-
-        is_end:
-            el.classList.contains("end"),
-
-        weight:
-            parseInt(el.dataset.weight || "1")
-    }));
+    weight: parseInt(el.dataset.weight || "1"),
+  }));
 }
 
 /*CHẠY THUẬT TOÁN*/
 
 async function runAlgorithm() {
+  clearAnimation();
 
-    clearAnimation();
+  isAnimating = true;
 
-    isAnimating = true;
+  lockUI();
 
-    lockUI();
+  try {
+    const result = await fetchAlgorithm();
 
-    try {
+    await animateVisited(result.visited_order);
 
-        const result =
-            await fetchAlgorithm();
+    await animatePath(result.path);
 
-        await animateVisited(
-            result.visited_order
-        );
+    updateDashboard(result);
+  } catch (error) {
+    console.error(error);
 
-        await animatePath(
-            result.path
-        );
+    alert(error.message);
+  } finally {
+    isAnimating = false;
 
-        updateDashboard(result);
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert(error.message);
-
-    } finally {
-
-        isAnimating = false;
-
-        unlockUI();
-    }
+    unlockUI();
+  }
 }
 
 /*GẮN SỰ KIỆN NÚT RUN*/
 
-document
-    .getElementById("btn-run")
-    .addEventListener(
-        "click",
-        runAlgorithm
-    );
+document.getElementById("btn-run").addEventListener("click", runAlgorithm);
