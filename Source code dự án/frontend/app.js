@@ -120,170 +120,84 @@ function getGridData() {
 // ── Gắn sự kiện nút Run ──────────────────────────────────────────────────────
 document.getElementById("btn-run").addEventListener("click", runAlgorithm);
 
-//VÂN ANH
+// vân anh
+const ROWS = 30;
+const COLS = 50;
 
-/*BIẾN TOÀN CỤC*/
+const grid = document.getElementById("grid");
 
-let isMouseDown = false;
-let isAnimating = false;
-let dragType = null;
+let mouseDown = false;
 
-/*VẼ TƯỜNG + KÉO THẢ START/END*/
+const startPos = {
+    row: 10,
+    col: 10
+};
 
-function attachCellEvents(cell) {
-  // Vẽ/Xóa tường
-  cell.addEventListener("mousedown", () => {
-    if (isAnimating) return;
+const endPos = {
+    row: 10,
+    col: 40
+};
 
-    if (cell.classList.contains("start") || cell.classList.contains("end"))
-      return;
+function createGrid() {
 
-    isMouseDown = true;
+    for(let row = 0; row < ROWS; row++){
+
+        for(let col = 0; col < COLS; col++){
+
+            const cell = document.createElement("div");
+
+            cell.classList.add("cell");
+
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+
+            if(
+                row === startPos.row &&
+                col === startPos.col
+            ){
+                cell.classList.add("start");
+            }
+
+            if(
+                row === endPos.row &&
+                col === endPos.col
+            ){
+                cell.classList.add("end");
+            }
+
+            cell.addEventListener("mousedown", () => {
+                toggleWall(cell);
+            });
+
+            cell.addEventListener("mouseover", () => {
+                if(mouseDown){
+                    toggleWall(cell);
+                }
+            });
+
+            grid.appendChild(cell);
+        }
+    }
+}
+
+function toggleWall(cell){
+
+    if(
+        cell.classList.contains("start") ||
+        cell.classList.contains("end")
+    ){
+        return;
+    }
 
     cell.classList.toggle("wall");
-  });
-
-  cell.addEventListener("mouseover", () => {
-    if (isAnimating) return;
-
-    if (!isMouseDown) return;
-
-    if (cell.classList.contains("start") || cell.classList.contains("end"))
-      return;
-
-    cell.classList.add("wall");
-  });
-
-  // Kéo Start / End
-  cell.addEventListener("dragstart", () => {
-    if (cell.classList.contains("start")) {
-      dragType = "start";
-    }
-
-    if (cell.classList.contains("end")) {
-      dragType = "end";
-    }
-  });
-
-  cell.addEventListener("dragover", (e) => {
-    e.preventDefault();
-  });
-
-  cell.addEventListener("drop", (e) => {
-    e.preventDefault();
-
-    if (isAnimating) return;
-
-    if (cell.classList.contains("wall")) return;
-
-    if (dragType === "start") {
-      const oldStart = document.querySelector(".start");
-
-      if (oldStart) {
-        oldStart.classList.remove("start");
-      }
-
-      cell.classList.add("start");
-      cell.draggable = true;
-    }
-
-    if (dragType === "end") {
-      const oldEnd = document.querySelector(".end");
-
-      if (oldEnd) {
-        oldEnd.classList.remove("end");
-      }
-
-      cell.classList.add("end");
-      cell.draggable = true;
-    }
-  });
 }
 
-/*THẢ CHUỘT*/
-
-document.addEventListener("mouseup", () => {
-  isMouseDown = false;
+document.addEventListener("mousedown", () => {
+    mouseDown = true;
 });
 
-/*XÓA ANIMATION CŨ*/
+document.addEventListener("mouseup", () => {
+    mouseDown = false;
+});
 
-function clearAnimation() {
-  document.querySelectorAll(".visited, .path").forEach((cell) => {
-    cell.classList.remove("visited");
-    cell.classList.remove("path");
-  });
-}
-
-/*KHÓA / MỞ KHÓA UI*/
-
-const LOCKABLE = [
-  ...document.querySelectorAll("button"),
-  ...document.querySelectorAll("input[type=range]"),
-];
-
-function lockUI() {
-  LOCKABLE.forEach((el) => {
-    el.disabled = true;
-    el.classList.add("ui-locked");
-  });
-}
-
-function unlockUI() {
-  LOCKABLE.forEach((el) => {
-    el.disabled = false;
-    el.classList.remove("ui-locked");
-  });
-}
-
-/*LẤY DỮ LIỆU GRID*/
-
-function getGridData() {
-  const cells = document.querySelectorAll(".cell");
-
-  return Array.from(cells).map((el) => ({
-    row: parseInt(el.dataset.row),
-
-    col: parseInt(el.dataset.col),
-
-    is_wall: el.classList.contains("wall"),
-
-    is_start: el.classList.contains("start"),
-
-    is_end: el.classList.contains("end"),
-
-    weight: parseInt(el.dataset.weight || "1"),
-  }));
-}
-
-/*CHẠY THUẬT TOÁN*/
-
-async function runAlgorithm() {
-  clearAnimation();
-
-  isAnimating = true;
-
-  lockUI();
-
-  try {
-    const result = await fetchAlgorithm();
-
-    await animateVisited(result.visited_order);
-
-    await animatePath(result.path);
-
-    updateDashboard(result);
-  } catch (error) {
-    console.error(error);
-
-    alert(error.message);
-  } finally {
-    isAnimating = false;
-
-    unlockUI();
-  }
-}
-
-/*GẮN SỰ KIỆN NÚT RUN*/
-
-document.getElementById("btn-run").addEventListener("click", runAlgorithm);
+createGrid();
