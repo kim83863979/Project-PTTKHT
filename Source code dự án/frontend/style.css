@@ -1,60 +1,271 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+/* --- CẤU HÌNH RESET & PHÔNG CHỮ CHUẨN --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body{
-    font-family: Arial, sans-serif;
-    background:#f5f5f5;
-    text-align:center;
-    padding:20px;
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f1f5f9; /* Màu nền xám nhẹ dịu mắt */
+  color: #1e293b; /* Chữ màu slate đậm sang trọng */
+  padding: 30px 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-h1{
-    margin-bottom:20px;
+/* --- TIÊU ĐỀ CHÍNH --- */
+h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1e3a8a; /* Xanh navy hoàng gia */
+  margin-bottom: 25px;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.toolbar{
-    margin-bottom:20px;
+/* --- THANH CÔNG CỤ TOOLBAR --- */
+.toolbar {
+  background: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-button{
-    padding:10px 15px;
-    margin:5px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    background:#3498db;
-    color:white;
+/* Dropdown chọn thuật toán */
+#algo-select {
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #475569;
+  background-color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
 }
 
-button:hover{
-    opacity:0.8;
+#algo-select:hover {
+  border-color: #cbd5e1;
 }
 
-#grid{
-    display:grid;
-    grid-template-columns: repeat(50, 20px);
-    justify-content:center;
-    gap:1px;
+#algo-select:focus {
+  border-color: #6366f1; /* Đổi màu khi click chọn */
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-.cell{
-    width:20px;
-    height:20px;
-    border:1px solid #ddd;
-    background:white;
+/* Nút bấm tổng thể */
+button {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.wall{
-    background:black;
+/* Từng nút chức năng riêng biệt */
+#btn-run {
+  background: #4f46e5; /* Màu Indigo hiện đại */
+  color: white;
+}
+#btn-run:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
 }
 
-.start{
-    background:green;
+#btn-maze {
+  background: #0284c7; /* Xanh Sky trẻ trung */
+  color: white;
+}
+#btn-maze:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
 }
 
-.end{
-    background:red;
+#btn-clear {
+  background: white;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  box-shadow: none;
+}
+#btn-clear:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Trạng thái nút bấm khi bị khóa UI (Đ. Thái) */
+button:disabled,
+select:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* --- BẢNG SỐ LIỆU DASHBOARD --- */
+.dashboard {
+  background: #1e293b; /* Nền tối đối lập hoàn toàn để làm nổi bật thông số */
+  color: #f8fafc;
+  padding: 10px 24px;
+  border-radius: 30px; /* Bo tròn dạng viên thuốc */
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.3px;
+}
+
+.dashboard span {
+  margin: 0 10px;
+}
+
+.dashboard strong {
+  color: #38bdf8; /* Màu xanh neon phát sáng cho con số */
+  font-family: "Courier New", Courier, monospace; /* Font chữ đơn cách cơ khí */
+  font-size: 1.1rem;
+}
+
+/* --- LƯỚI MA TRẬN Ô VUÔNG --- */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(
+    50,
+    22px
+  ); /* Tăng kích thước ô lên một chút cho dễ nhìn */
+  justify-content: center;
+  gap: 1px;
+  background-color: #cbd5e1; /* Màu của đường chỉ lưới */
+  padding: 2px;
+  border-radius: 8px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.05),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background-clip: content-box;
+  overflow: hidden;
+}
+
+.cell {
+  width: 22px;
+  height: 22px;
+  background: white;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+/* --- TRẠNG THÁI CÁC Ô ĐẶC BIỆT --- */
+
+/* Ô tường chắn */
+.wall {
+  background-color: #1e293b !important;
+  border-color: #1e293b;
+  transform: scale(0.95); /* Hiệu ứng co nhẹ khi vẽ tường */
+  animation: wallAnimation 0.2s ease-out;
+}
+
+/* Ô bắt đầu (Start) */
+.start {
+  background-color: #10b981 !important; /* Xanh lục bảo Emerald cực sang */
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 2px white,
+    0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+/* Ô kết thúc (End) */
+.end {
+  background-color: #ef4444 !important; /* Đỏ Crimson quyền lực */
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 2px white,
+    0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* --- 💥 HIỆU ỨNG SÓNG LOANG MÀU (DÀNH CHO GIAI ĐOẠN III) 💥 --- */
+
+/* Hiệu ứng ô đã duyệt (Visited) */
+.visited {
+  animation: visitedAnimation 1.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* Hiệu ứng đường đi ngắn nhất (Path) */
+.path {
+  animation: pathAnimation 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* --- 🎬 CÁC ĐOẠN HOẠT HỌA KEYFRAMES --- */
+
+@keyframes wallAnimation {
+  0% {
+    transform: scale(0.5);
+    background-color: #64748b;
+  }
+  100% {
+    transform: scale(0.95);
+    background-color: #1e293b;
+  }
+}
+
+@keyframes visitedAnimation {
+  0% {
+    transform: scale(0.3);
+    background-color: rgba(0, 0, 66, 0.75);
+    border-radius: 100%;
+  }
+  25% {
+    background-color: rgba(17, 104, 217, 0.75);
+  }
+  50% {
+    background-color: rgba(0, 217, 159, 0.6);
+  }
+  75% {
+    transform: scale(1.1);
+    background-color: rgba(0, 190, 218, 0.75);
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgba(
+      165,
+      243,
+      252,
+      0.85
+    ); /* Màu xanh ngọc nhạt thanh lịch */
+    border: 1px solid #bae6fd;
+  }
+}
+
+@keyframes pathAnimation {
+  0% {
+    transform: scale(0.6);
+    background-color: #fef08a;
+  }
+  50% {
+    transform: scale(1.1);
+    background-color: #facc15;
+  }
+  100% {
+    transform: scale(1);
+    background-color: #fbbf24; /* Vàng hổ phách glowing ấm áp */
+    box-shadow: 0 0 4px rgba(251, 191, 36, 0.5);
+    border: 1px solid #f59e0b;
+  }
 }

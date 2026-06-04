@@ -1,26 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Path Finding Visualizer</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <h1>Path Finding Visualizer</h1>
 
     <div class="toolbar">
-        <button>BFS</button>
-        <button>DFS</button>
-        <button>Dijkstra</button>
-        <button>A*</button>
-        <button>Generate Maze</button>
-        <button>Clear Board</button>
+      <select id="algo-select">
+        <option value="bfs">BFS</option>
+        <option value="dfs">DFS</option>
+        <option value="dijkstra">Dijkstra</option>
+        <option value="astar">A*</option>
+      </select>
+
+      <button id="btn-run">Run Algorithm</button>
+
+      <button id="btn-maze">Generate Maze</button>
+      <button id="btn-clear">Clear Board</button>
+    </div>
+
+    <div class="dashboard" style="margin-bottom: 20px">
+      <span>Cost: <strong id="stat-cost">0</strong></span> |
+      <span>Visited: <strong id="stat-visited">0</strong></span> |
+      <span>Time: <strong id="stat-time">0 ms</strong></span>
     </div>
 
     <div id="grid"></div>
 
     <script src="app.js"></script>
-</body>
+  </body>
 </html>

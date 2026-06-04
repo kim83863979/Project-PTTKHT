@@ -129,75 +129,62 @@ const grid = document.getElementById("grid");
 let mouseDown = false;
 
 const startPos = {
-    row: 10,
-    col: 10
+  row: 10,
+  col: 10,
 };
 
 const endPos = {
-    row: 10,
-    col: 40
+  row: 10,
+  col: 40,
 };
 
 function createGrid() {
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const cell = document.createElement("div");
 
-    for(let row = 0; row < ROWS; row++){
+      cell.classList.add("cell");
 
-        for(let col = 0; col < COLS; col++){
+      cell.dataset.row = row;
+      cell.dataset.col = col;
 
-            const cell = document.createElement("div");
+      if (row === startPos.row && col === startPos.col) {
+        cell.classList.add("start");
+      }
 
-            cell.classList.add("cell");
+      if (row === endPos.row && col === endPos.col) {
+        cell.classList.add("end");
+      }
 
-            cell.dataset.row = row;
-            cell.dataset.col = col;
+      cell.addEventListener("mousedown", () => {
+        toggleWall(cell);
+      });
 
-            if(
-                row === startPos.row &&
-                col === startPos.col
-            ){
-                cell.classList.add("start");
-            }
-
-            if(
-                row === endPos.row &&
-                col === endPos.col
-            ){
-                cell.classList.add("end");
-            }
-
-            cell.addEventListener("mousedown", () => {
-                toggleWall(cell);
-            });
-
-            cell.addEventListener("mouseover", () => {
-                if(mouseDown){
-                    toggleWall(cell);
-                }
-            });
-
-            grid.appendChild(cell);
+      cell.addEventListener("mouseover", () => {
+        if (mouseDown) {
+          toggleWall(cell);
         }
+      });
+
+      grid.appendChild(cell);
     }
+  }
 }
 
-function toggleWall(cell){
+function toggleWall(cell) {
+  if (cell.classList.contains("start") || cell.classList.contains("end")) {
+    return;
+  }
 
-    if(
-        cell.classList.contains("start") ||
-        cell.classList.contains("end")
-    ){
-        return;
-    }
-
-    cell.classList.toggle("wall");
+  cell.classList.toggle("wall");
 }
 
 document.addEventListener("mousedown", () => {
-    mouseDown = true;
+  mouseDown = true;
 });
 
 document.addEventListener("mouseup", () => {
-    mouseDown = false;
+  mouseDown = false;
 });
 
 createGrid();
