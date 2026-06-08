@@ -48,14 +48,14 @@ def explore(start_r, start_c, grid, rows, cols):
  
         # Vẽ animation mỗi vài bước
         if len(stack) % max(1, rows * cols // 60) == 0 or not stack:
-            os.system("clear")
+            os.system("cls")
             print(ve_mecung(grid, rows, cols, set(stack), stack[-1] if stack else None))
             print(f"\n  Stack: {len(stack)}\n")
  
  
 def make_grid(rows, cols):
     """
-    Tạo List[List[Node]], mỗi Node có thêm thuộc tính wall.
+    Tạo List[List[Node]], mỗi Node có thêm thuộc tính wall
     """
     grid = []
     for r in range(rows):
@@ -78,25 +78,25 @@ def ve_mecung(grid, rows, cols, stack_set, current):
     for r in range(rows):
         hang = XAM + "│" + RST
         for c in range(cols):
-            cell = grid[r][c]
+            node = grid[r][c]
             pos  = (r, c)
  
-            if pos == (0, 0):
+            if node.state == CellState.START.value:
                 nd = XANH + "S " + RST
-            elif pos == (rows - 1, cols - 1):
+            elif node.state == CellState.END.value:
                 nd = XANHLA  + "E " + RST
             elif pos == current:
                 nd = DO   + "██" + RST
             elif pos in stack_set:
                 nd = TIM  + "▓▓" + RST
-            elif cell["visited"]:
+            elif node.visited:
                 nd = "  "
             else:
                 nd = XAM  + "██" + RST
  
             hang += nd
             if c < cols - 1:
-                hang += (XAM + "│" + RST) if cell["wall"]["E"] else " "
+                hang += (XAM + "│" + RST) if node.wall["E"] else " "
             else:
                 hang += XAM + "│" + RST
         lines.append(hang)
@@ -104,7 +104,7 @@ def ve_mecung(grid, rows, cols, stack_set, current):
         if r < rows - 1:
             sep = XAM + "├"
             for c in range(cols):
-                sep += "──" if grid[r][c]["wall"]["S"] else "  "
+                sep += "──" if grid[r][c].wall["S"] else "  "
                 sep += "┼" if c < cols - 1 else "┤"
             lines.append(sep + RST)
         else:
