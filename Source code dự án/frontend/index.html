@@ -13,11 +13,35 @@
       <select id="algo-select">
         <option value="bfs">BFS</option>
         <option value="dfs">DFS</option>
-        <option value="dijkstra">Dijkstra</option>
-        <option value="astar">A*</option>
+        <option value="dijkstra">Dijkstra Algorithm</option>
+        <option value="astar">A* Algorithm</option>
       </select>
 
       <button id="btn-run">Run Algorithm</button>
+
+      <div
+        class="slider-container"
+        style="
+          display: inline-flex;
+          align-items: center;
+          margin: 0 10px;
+          gap: 5px;
+        "
+      >
+        <label
+          for="speed-slider"
+          style="font-size: 14px; font-weight: 600; color: #4a5568"
+          >Speed:</label
+        >
+        <input
+          type="range"
+          id="speed-slider"
+          min="1"
+          max="10"
+          value="5"
+          style="cursor: pointer"
+        />
+      </div>
 
       <button id="btn-maze">Generate Maze</button>
       <button id="btn-clear">Clear Board</button>
