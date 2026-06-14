@@ -1,86 +1,99 @@
-#dijkstra
 import heapq
-def dijkstra(grid, start, end):
+
+def manhattan_distance(node_a, node_b):
+    """Hàm la bàn tính khoảng cách ước lượng cho thuật toán A*"""
+    return abs(node_a.row - node_b.row) + abs(node_a.col - node_b.col)
+
+
+def dijkstra_algorithm(grid, start_node, end_node, get_neighbors_func):
     """
-    grid  : ma trận 2D, mỗi ô là dict {"is_wall": bool, "weight": int}
-    start : (row, col) điểm bắt đầu
-    end   : (row, col) điểm kết thúc
-
-    Returns:
-        path          – danh sách (row, col) từ start → end
-        visited_order – thứ tự các ô được thăm (dùng cho animation)
-        cost          – tổng chi phí đường đi tối ưu
+    Thuật toán Dijkstra chuẩn hóa theo cấu trúc đối tượng Node
     """
-    rows, cols = len(grid), len(grid[0])
+    # Khởi tạo/Làm sạch trạng thái của ma trận Node trước khi chạy
+    for row in grid:
+        for node in row:
+            node.g_cost = float('inf')
+            node.parent = None
 
-    # Bảng chi phí g: khởi tạo vô cực
-    INF = float("inf")
-    g = [[INF] * cols for _ in range(rows)]
-    g[start[0]][start[1]] = 0
-
-    parent = {}
-    visited_order = []
-
-    # Min-Heap: (g_cost, row, col)
-    heap = [(0, start[0], start[1])]
+    start_node.g_cost = 0.0
+    count = 0
+    
+    # Min-Heap lưu tuple: (g_cost, count, node_object)
+    heap = [(0.0, count, start_node)]
+    visited_nodes_order = []
 
     while heap:
-        g_current, r, c = heapq.heappop(heap)
+        g_current, _, current = heapq.heappop(heap)
 
-        # Lazy deletion: bỏ qua entry cũ
-        if g_current > g[r][c]:
+        # Cơ chế Lazy deletion tối ưu Min-Heap
+        if g_current > current.g_cost:
             continue
 
-        visited_order.append((r, c))
+        # Lưu lại thứ tự quét (Bỏ qua điểm đầu và cuối để tránh đè màu giao diện)
+        if current != start_node and current != end_node:
+            visited_nodes_order.append([current.row, current.col])
 
-        # Đến đích
-        if (r, c) == end:
-            return _reconstruct_path(parent, start, end), visited_order, g[r][c]
+        # Kịch bản thành công: Chạm tới đích
+        if current == end_node:
+            return visited_nodes_order, True
 
-        # Relaxation: cập nhật chi phí g cho hàng xóm
-        for nr, nc in _get_neighbors(grid, r, c, rows, cols):
-            g_new = g_current + grid[nr][nc]["weight"]  # ← Tính g mới
+        # Duyệt các ô hàng xóm lân cận (4 hướng) thông qua hàm của Gia Bân
+        for neighbor in get_neighbors_func(current, grid):
+            g_new = current.g_cost + neighbor.weight
 
-            if g_new < g[nr][nc]:                       # ← So sánh
-                g[nr][nc]          = g_new              # ← Cập nhật g
-                parent[(nr, nc)]   = (r, c)
-                heapq.heappush(heap, (g_new, nr, nc))   # ← Push Min-Heap
+            if g_new < neighbor.g_cost:
+                neighbor.g_cost = g_new
+                neighbor.parent = current
+                count += 1
+                heapq.heappush(heap, (g_new, count, neighbor))
 
-    return [], visited_order, INF  # không tìm thấy đường
-
-
-def _get_neighbors(grid, r, c, rows, cols):
-    for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
-        nr, nc = r + dr, c + dc
-        if 0 <= nr < rows and 0 <= nc < cols and not grid[nr][nc]["is_wall"]:
-            yield nr, nc
+    return visited_nodes_order, False
 
 
-def _reconstruct_path(parent, start, end):
-    path, cur = [], end
-    while cur != start:
-        path.append(cur)
-        cur = parent.get(cur)
-        if cur is None:
-            return []
-    path.append(start)
-    path.reverse()
-    return path
+# 🔥 ĐÃ SỬA: Thêm get_neighbors_func vào danh sách tham số đầu vào
+def a_star_algorithm(grid, start_node, end_node, get_neighbors_func):
+    """
+    Thuật toán A* chuẩn hóa theo cấu trúc đối tượng Node
+    """
+    # Khởi tạo/Làm sạch trạng thái của ma trận Node trước khi chạy
+    for row in grid:
+        for node in row:
+            node.g_cost = float('inf')
+            node.f_cost = float('inf')
+            node.parent = None
 
+    start_node.g_cost = 0.0
+    start_node.h_cost = manhattan_distance(start_node, end_node)
+    start_node.f_cost = start_node.h_cost
 
-# ── Demo ──────────────────────────────────────
-if __name__ == "__main__":
-    # Lưới 5x5, tường ký hiệu is_wall=True
-    rows, cols = 5, 5
-    grid = [[{"is_wall": False, "weight": 1} for _ in range(cols)] for _ in range(rows)]
+    count = 0
+    # Min-Heap sắp xếp theo f_cost thay vì g_cost
+    open_set = [(start_node.f_cost, count, start_node)]
+    visited_nodes_order = []
 
-    for c in range(1, 4): grid[1][c]["is_wall"] = True
-    grid[2][1]["is_wall"] = True
-    grid[3][1]["is_wall"] = True
-    grid[3][3]["is_wall"] = True
-    grid[4][3]["is_wall"] = True
+    while open_set:
+        f_current, _, current = heapq.heappop(open_set)
 
-    path, visited, cost = dijkstra(grid, (0,0), (4,4))
-    print("Cost   :", cost)
-    print("Path   :", path)
-    print("Visited:", len(visited), "ô")
+        if f_current > current.f_cost:
+            continue
+
+        if current != start_node and current != end_node:
+            visited_nodes_order.append([current.row, current.col])
+
+        if current == end_node:
+            return visited_nodes_order, True
+
+        # Duyệt các ô hàng xóm lân cận (4 hướng) thông qua hàm của Gia Bân
+        for neighbor in get_neighbors_func(current, grid):
+            tentative_g_score = current.g_cost + neighbor.weight
+
+            if tentative_g_score < neighbor.g_cost:
+                neighbor.parent = current
+                neighbor.g_cost = tentative_g_score
+                neighbor.h_cost = manhattan_distance(neighbor, end_node)
+                neighbor.f_cost = neighbor.g_cost + neighbor.h_cost
+                
+                count += 1
+                heapq.heappush(open_set, (neighbor.f_cost, count, neighbor))
+
+    return visited_nodes_order, False

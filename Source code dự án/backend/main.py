@@ -1,16 +1,18 @@
+import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import MatrixPayload
+from algorithms import dijkstra_algorithm, a_star_algorithm
+# 🔥 ĐƯỜNG DÂY KẾT NỐI: Import hàm truy vết của Gia Bân từ utils
+from utils import reconstruct_path
 
-# Khởi tạo server
 app = FastAPI(
     title="Matrix Processing API",
     description="API tiếp nhận dữ liệu ma trận từ Frontend",
     version="1.0"
 )
 
-# Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,40 +21,54 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-
 @app.get("/")
 def home():
-    return {
-        "message": "Backend Server đang hoạt động"
-    }
+    return {"message": "Backend Server đang hoạt động"}
 
-
-@app.post("/matrix")
-def receive_matrix(data: MatrixPayload):
+@app.post("/api/solve")
+def solve_matrix(data: MatrixPayload):
     try:
-        # 🔥 ĐÂY LÀ BƯỚC TIẾP THEO: Gọi hàm của bạn để dựng ma trận Node logic
         node_grid = data.build_node_grid()
+        sr, sc = data.start
+        er, ec = data.end
+        start_node = node_grid[sr][sc]
+        end_node = node_grid[er][ec]
         
-        # Thử lấy tọa độ điểm Start và End từ ma trận Node ra để kiểm tra
-        start_row, start_col = data.start
-        end_row, col_end = data.end
-        start_node = node_grid[start_row][start_col]
-        end_node = node_grid[end_row][col_end]
+        start_time = time.perf_counter()
         
-        # Trả về thông báo thành công cho Frontend
+        # 🔥 TRUYỀN HÀM: Đưa hàm data.get_neighbors vào làm tham số thứ 4
+        if data.algorithm == "astar":
+            visited_order, found = a_star_algorithm(node_grid, start_node, end_node, data.get_neighbors)
+        elif data.algorithm == "dijkstra":
+            visited_order, found = dijkstra_algorithm(node_grid, start_node, end_node, data.get_neighbors)
+        else:
+            return {"status": "error", "message": f"Thuật toán {data.algorithm} đang được phát triển."}
+            
+        end_time = time.perf_counter()
+        execution_time_ms = (end_time - start_time) * 1000
+        
+        path = []
+        cost = 0
+        
+        if found:
+            # 🔥 SỬ DỤNG: Gọi hàm reconstruct_path của Gia Bân
+            path = reconstruct_path(end_node)
+            
+            # Tính toán cost động dựa trên mảng đường đi thu được
+            for r, c in path:
+                cost += node_grid[r][c].weight
+            
+            # Tùy chọn: Loại bỏ ô start và end ra khỏi mảng path để giao diện không bị đè màu hoạt họa
+            if len(path) > 2:
+                path = path[1:-1]
+                
         return {
             "status": "success",
-            "message": "Đã tiếp nhận và dựng ma trận Node thành công!",
-            "info": {
-                "rows": data.rows,
-                "cols": data.cols,
-                "start_node_state": start_node.state, # Sẽ in ra "start"
-                "end_node_state": end_node.state      # Sẽ in ra "end"
-            }
+            "visited_order": visited_order,
+            "path": path,
+            "cost": cost if found else 0,
+            "time_ms": execution_time_ms
         }
         
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Quá trình dựng ma trận Node bị lỗi: {str(e)}"
-        }
+        return {"status": "error", "message": str(e)}

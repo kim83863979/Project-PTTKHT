@@ -1,5 +1,3 @@
-# models.py
-
 from __future__ import annotations
 
 from enum import Enum
@@ -134,14 +132,11 @@ class MatrixPayload(BaseModel):
         """
         Chuyển grid thành ma trận Node.
         """
-
         node_grid: List[List[Node]] = []
 
         for r in range(self.rows):
             row_nodes = []
-
             for c in range(self.cols):
-
                 value = self.grid[r][c]
 
                 if isinstance(value, dict):
@@ -157,9 +152,7 @@ class MatrixPayload(BaseModel):
                     weight=weight,
                     is_blocked=blocked
                 )
-
                 row_nodes.append(node)
-
             node_grid.append(row_nodes)
 
         sr, sc = self.start
@@ -169,3 +162,31 @@ class MatrixPayload(BaseModel):
         node_grid[er][ec].state = CellState.END.value
 
         return node_grid
+
+    # 🔥 ĐÃ KHÔI PHỤC & NÂNG CẤP: Hàm quét ô hàng xóm lân cận của Gia Bân
+    def get_neighbors(self, node: Node, node_grid: List[List[Node]]) -> List[Node]:
+        """
+        Quét và trả về danh sách các ô hàng xóm đi được xung quanh Node hiện tại.
+        """
+        neighbors = []
+        
+        # 4 hướng di chuyển cơ bản (Lên, Xuống, Trái, Phải)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        
+        # Nếu Front-end bật cấu hình allow_diagonal = True thì nạp thêm 4 hướng chéo
+        if self.allow_diagonal:
+            directions.extend([(-1, -1), (-1, 1), (1, -1), (1, 1)])
+
+        for dr, dc in directions:
+            nr = node.row + dr
+            nc = node.col + dc
+
+            # Kiểm tra điều kiện biên ma trận (chống lỗi IndexError)
+            if 0 <= nr < self.rows and 0 <= nc < self.cols:
+                neighbor = node_grid[nr][nc]
+                
+                # Loại bỏ ngay ô tường chắn, chỉ giữ lại ô đi được
+                if not neighbor.is_blocked:
+                    neighbors.append(neighbor)
+
+        return neighbors
