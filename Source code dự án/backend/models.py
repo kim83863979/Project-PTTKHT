@@ -75,6 +75,8 @@ class Node:
 
         self.visited = False
         self.closed = False
+        
+        self.wall: Dict[str, bool] = {"N": True, "S": True, "E": True, "W": True}
 
     @property
     def position(self) -> Tuple[int, int]:
@@ -101,6 +103,7 @@ class Node:
                 if self.parent
                 else None
             ),
+            "wall": self.wall,
         }
 
     def __repr__(self):
