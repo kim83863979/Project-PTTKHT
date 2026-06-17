@@ -56,18 +56,17 @@ def make_grid(rows, cols):
  
     return grid
 
-def maze_to_wall_grid(node_grid, rows, cols):
+def maze_to_node_grid(node_grid, rows, cols):
     """
-    Tạo lưới mới kích thước (2*rows-1) x (2*cols-1).
-    Mỗi ô gốc -> 1 điểm. Khoảng giữa 2 ô kề -> 1 "ô tường".
-    Tường còn nguyên -> is_wall=True (chặn). Tường đã bẻ -> is_wall=False (đi qua được).
+    Trả về (new_grid, new_rows, new_cols).
+    new_grid là List[List[Node]] kích thước (2*rows-1) x (2*cols-1).
     """
     new_rows = 2 * rows - 1
     new_cols = 2 * cols - 1
  
     new_grid = [
-        [{"is_wall": True, "weight": 1.0} for _ in range(new_cols)]
-        for _ in range(new_rows)
+        [Node(row=r, col=c, is_blocked=True) for c in range(new_cols)]
+        for r in range(new_rows)
     ]
  
     for r in range(rows):
@@ -75,24 +74,28 @@ def maze_to_wall_grid(node_grid, rows, cols):
             node = node_grid[r][c]
             nr, nc = 2 * r, 2 * c
  
-            new_grid[nr][nc]["is_wall"] = node.is_blocked
-            new_grid[nr][nc]["weight"]  = node.weight
+            new_grid[nr][nc].is_blocked = node.is_blocked
+            new_grid[nr][nc].weight      = node.weight
  
-            if c < cols - 1:                                    # tường Đông
-                new_grid[nr][nc + 1]["is_wall"] = node.wall["E"]
-            if r < rows - 1:                                    # tường Nam
-                new_grid[nr + 1][nc]["is_wall"] = node.wall["S"]
+            if c < cols - 1:                                   # tường Đông
+                new_grid[nr][nc + 1].is_blocked = node.wall["E"]
+            if r < rows - 1:                                   # tường Nam
+                new_grid[nr + 1][nc].is_blocked = node.wall["S"]
  
     return new_grid, new_rows, new_cols
- 
  
 def scale_point(r, c):
     """Tọa độ gốc -> tọa độ trong lưới gấp đôi."""
     return 2 * r, 2 * c
  
  
-def unscale_path(path):
-    """Lọc bỏ các điểm tường, giữ lại điểm ô gốc, quy đổi về tọa độ gốc."""
-    return [(r // 2, c // 2) for r, c in path if r % 2 == 0 and c % 2 == 0]
-    
-    
+def unscale_path(path_rc_list):
+    """
+    Lọc danh sách [row, col] trong lưới gấp đôi,
+    chỉ giữ điểm ô gốc, quy đổi về tọa độ gốc.
+    """
+    result = []
+    for r, c in path_rc_list:
+        if r % 2 == 0 and c % 2 == 0:
+            result.append([r // 2, c // 2])
+    return result
