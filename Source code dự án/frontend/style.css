@@ -173,7 +173,10 @@ select:disabled {
 }
 
 /* --- TRẠNG THÁI CÁC Ô ĐẶC BIỆT --- */
-
+.wall-n { border-top:    3px solid #1e293b; }
+.wall-s { border-bottom: 3px solid #1e293b; }
+.wall-e { border-right:  3px solid #1e293b; }
+.wall-w { border-left:   3px solid #1e293b; }
 /* Ô tường chắn */
 .wall {
   background-color: #1e293b !important;
