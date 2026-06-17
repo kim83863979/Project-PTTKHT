@@ -65,6 +65,6 @@ function buildGrid() {
     }
     matrixGrid.push(rowItems);
   }
-
+  
   return matrixGrid;
 }
