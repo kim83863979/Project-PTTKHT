@@ -172,7 +172,7 @@ select:disabled {
     transform 0.1s ease;
 }
 
-/* --- TRẠNG THÁI CÁC Ô ĐẶC BIỆT --- */
+/* TRẠNG THÁI CÁC Ô ĐẶC BIỆT */
 .wall-n { border-top:    3px solid #1e293b; }
 .wall-s { border-bottom: 3px solid #1e293b; }
 .wall-e { border-right:  3px solid #1e293b; }
@@ -252,7 +252,7 @@ select:disabled {
       252,
       0.85
     ); /* Màu xanh ngọc nhạt thanh lịch */
-    border: 1px solid #bae6fd;
+    outline: 1px solid #bae6fd;
   }
 }
 
@@ -269,6 +269,6 @@ select:disabled {
     transform: scale(1);
     background-color: #fbbf24;
     box-shadow: 0 0 4px rgba(251, 191, 36, 0.5);
-    border: 1px solid #f59e0b;
+    outline: 1px solid #f59e0b;
   }
 }
