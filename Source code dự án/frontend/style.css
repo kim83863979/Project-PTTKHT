@@ -7,8 +7,8 @@
 
 body {
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f1f5f9; /* Màu nền xám nhẹ dịu mắt */
-  color: #1e293b; /* Chữ màu slate đậm sang trọng */
+  background-color: #f1f5f9;
+  color: #1e293b;
   padding: 30px 20px;
   min-height: 100vh;
   display: flex;
@@ -20,7 +20,7 @@ body {
 h1 {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #1e3a8a; /* Xanh navy hoàng gia */
+  color: #1e3a8a;
   margin-bottom: 25px;
   letter-spacing: -0.5px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -42,8 +42,9 @@ h1 {
   justify-content: center;
 }
 
-/* Dropdown chọn thuật toán */
-#algo-select {
+/* 🌟 Đã gộp chung #algo-select và #size-select vào đây để đồng bộ giao diện */
+#algo-select,
+#size-select {
   padding: 10px 16px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
@@ -54,18 +55,22 @@ h1 {
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
+  height: 42px; /* Chốt chiều cao bằng với nút bấm */
 }
 
-#algo-select:hover {
+/* 🌟 Hiệu ứng Hover dùng chung */
+#algo-select:hover,
+#size-select:hover {
   border-color: #cbd5e1;
 }
 
-#algo-select:focus {
-  border-color: #6366f1; /* Đổi màu khi click chọn */
+/* 🌟 Hiệu ứng Click/Focus dùng chung */
+#algo-select:focus,
+#size-select:focus {
+  border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-/* Nút bấm tổng thể */
 button {
   padding: 10px 20px;
   font-size: 0.95rem;
@@ -78,11 +83,11 @@ button {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  height: 42px; /* Đảm bảo các nút cũng cao 42px để Toolbar không bị lệch */
 }
 
-/* Từng nút chức năng riêng biệt */
 #btn-run {
-  background: #4f46e5; /* Màu Indigo hiện đại */
+  background: #4f46e5;
   color: white;
 }
 #btn-run:hover {
@@ -92,7 +97,7 @@ button {
 }
 
 #btn-maze {
-  background: #0284c7; /* Xanh Sky trẻ trung */
+  background: #0284c7;
   color: white;
 }
 #btn-maze:hover {
@@ -113,7 +118,6 @@ button {
   border-color: #cbd5e1;
 }
 
-/* Trạng thái nút bấm khi bị khóa UI (Đ. Thái) */
 button:disabled,
 select:disabled {
   opacity: 0.4 !important;
@@ -124,10 +128,10 @@ select:disabled {
 
 /* --- BẢNG SỐ LIỆU DASHBOARD --- */
 .dashboard {
-  background: #1e293b; /* Nền tối đối lập hoàn toàn để làm nổi bật thông số */
+  background: #1e293b;
   color: #f8fafc;
   padding: 10px 24px;
-  border-radius: 30px; /* Bo tròn dạng viên thuốc */
+  border-radius: 30px;
   font-size: 0.95rem;
   font-weight: 500;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -137,23 +141,19 @@ select:disabled {
 .dashboard span {
   margin: 0 10px;
 }
-
 .dashboard strong {
-  color: #38bdf8; /* Màu xanh neon phát sáng cho con số */
-  font-family: "Courier New", Courier, monospace; /* Font chữ đơn cách cơ khí */
+  color: #38bdf8;
+  font-family: "Courier New", Courier, monospace;
   font-size: 1.1rem;
 }
 
 /* --- LƯỚI MA TRẬN Ô VUÔNG --- */
 #grid {
+  /* Đã xóa grid-template-columns cứng để file app.js toàn quyền tự động chia tỷ lệ khi đổi kích thước ma trận */
   display: grid;
-  grid-template-columns: repeat(
-    50,
-    22px
-  ); /* Tăng kích thước ô lên một chút cho dễ nhìn */
   justify-content: center;
   gap: 1px;
-  background-color: #cbd5e1; /* Màu của đường chỉ lưới */
+  background-color: #cbd5e1;
   padding: 2px;
   border-radius: 8px;
   box-shadow:
@@ -173,49 +173,48 @@ select:disabled {
 }
 
 /* TRẠNG THÁI CÁC Ô ĐẶC BIỆT */
-.wall-n { border-top:    3px solid #1e293b; }
-.wall-s { border-bottom: 3px solid #1e293b; }
-.wall-e { border-right:  3px solid #1e293b; }
-.wall-w { border-left:   3px solid #1e293b; }
-/* Ô tường chắn */
+.wall-n {
+  border-top: 3px solid #1e293b;
+}
+.wall-s {
+  border-bottom: 3px solid #1e293b;
+}
+.wall-e {
+  border-right: 3px solid #1e293b;
+}
+.wall-w {
+  border-left: 3px solid #1e293b;
+}
 .wall {
   background-color: #1e293b !important;
   border-color: #1e293b;
-  transform: scale(0.95); /* Hiệu ứng co nhẹ khi vẽ tường */
+  transform: scale(0.95);
   animation: wallAnimation 0.2s ease-out;
 }
 
-/* Ô bắt đầu (Start) */
 .start {
-  background-color: #10b981 !important; /* Xanh lục bảo Emerald cực sang */
+  background-color: #10b981 !important;
   border-radius: 4px;
   box-shadow:
     inset 0 0 0 2px white,
     0 0 8px rgba(16, 185, 129, 0.6);
 }
 
-/* Ô kết thúc (End) */
 .end {
-  background-color: #ef4444 !important; /* Đỏ Crimson quyền lực */
+  background-color: #ef4444 !important;
   border-radius: 4px;
   box-shadow:
     inset 0 0 0 2px white,
     0 0 8px rgba(239, 68, 68, 0.6);
 }
 
-/* --- 💥 HIỆU ỨNG SÓNG LOANG MÀU (DÀNH CHO GIAI ĐOẠN III) 💥 --- */
-
-/* Hiệu ứng ô đã duyệt (Visited) */
+/* --- 💥 HIỆU ỨNG SÓNG LOANG MÀU --- */
 .visited {
   animation: visitedAnimation 1.5s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
-
-/* Hiệu ứng đường đi ngắn nhất (Path) */
 .path {
   animation: pathAnimation 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-
-/* --- 🎬 CÁC ĐOẠN HOẠT HỌA KEYFRAMES --- */
 
 @keyframes wallAnimation {
   0% {
@@ -246,12 +245,7 @@ select:disabled {
   }
   100% {
     transform: scale(1);
-    background-color: rgba(
-      165,
-      243,
-      252,
-      0.85
-    ); /* Màu xanh ngọc nhạt thanh lịch */
+    background-color: rgba(165, 243, 252, 0.85);
     outline: 1px solid #bae6fd;
   }
 }
@@ -271,4 +265,109 @@ select:disabled {
     box-shadow: 0 0 4px rgba(251, 191, 36, 0.5);
     outline: 1px solid #f59e0b;
   }
+}
+
+/* Nút Xem so sánh trên Toolbar */
+.btn-stats {
+  background-color: #475569;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-stats:hover {
+  background-color: #334155;
+}
+
+/* Lớp nền mờ bao phủ toàn bộ màn hình */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content-dark {
+  background-color: #1e293b;
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 750px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #38bdf8;
+}
+.modal-close-x {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 28px;
+  cursor: pointer;
+}
+.modal-close-x:hover {
+  color: white;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.comparison-table th {
+  background-color: #0f172a;
+  color: #94a3b8;
+  padding: 12px;
+  text-align: left;
+  font-size: 13px;
+  border-bottom: 2px solid #334155;
+}
+.comparison-table td {
+  padding: 12px;
+  border-bottom: 1px solid #334155;
+  font-size: 14px;
+}
+.algo-name {
+  font-weight: 600;
+  color: #f8fafc;
+}
+.modal-footer {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: right;
+}
+.row-highlight {
+  background-color: rgba(56, 189, 248, 0.08);
 }

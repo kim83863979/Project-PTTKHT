@@ -1,33 +1,44 @@
 /* ==========================================================================
-   1. CẤU HÌNH BIẾN TOÀN CỤC & KHỞI TẠO LƯỚI
+   1. CẤU HÌNH BIẾN TOÀN CỤC
    ========================================================================== */
+const MAZE_API_BASE_URL = "http://127.0.0.1:8000";
 let ROWS = 30;
 let COLS = 50;
 let startPos = { row: 10, col: 10 };
 let endPos = { row: 10, col: 40 };
-const gridContainer = document.getElementById("grid");
 
 let mouseDown = false;
 let isAnimating = false;
+let isMazeActive = false;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function getAnimationDelay() {
   const slider = document.getElementById("speed-slider");
   if (!slider) return 10;
-
   const speed = parseInt(slider.value, 10);
   return (100 - speed) * 8;
 }
 
+/* ==========================================================================
+   2. HÀM TẠO LƯỚI (ĐÃ SỬA LỖI TRẮNG MA TRẬN)
+   ========================================================================== */
 function createGrid() {
+  // 🌟 FIX LỖI 1: Lấy ID "grid" trực tiếp bên trong hàm để chắc chắn HTML đã tải xong
+  const gridContainer = document.getElementById("grid");
+  if (!gridContainer) {
+    console.error("Lỗi: Không tìm thấy thẻ có id='grid' trên HTML!");
+    return;
+  }
+
   gridContainer.innerHTML = "";
+  gridContainer.style.display = "grid";
+  gridContainer.style.gridTemplateRows = `repeat(${ROWS}, 1fr)`;
+  gridContainer.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       const cell = document.createElement("div");
-      const board = document.getElementById("grid");
-      board.style.gridTemplateRows = `repeat(${ROWS}, 1fr)`;
-      board.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
       cell.classList.add("cell");
       cell.dataset.row = row;
       cell.dataset.col = col;
@@ -53,7 +64,9 @@ function createGrid() {
 
 // Thay đổi kích thước của ma trận
 function changeGridSize() {
-  const sizeType = document.getElementById("size-select").value;
+  const sizeSelect = document.getElementById("size-select");
+  if (!sizeSelect) return;
+  const sizeType = sizeSelect.value;
 
   if (sizeType === "small") {
     ROWS = 20;
@@ -72,12 +85,10 @@ function changeGridSize() {
     endPos = { row: 10, col: 40 };
   }
 
+  isMazeActive = false;
   clearBoard();
-  createGrid(); // Hàm vẽ các ô div lên màn hình
+  createGrid();
 }
-document
-  .getElementById("size-select")
-  .addEventListener("change", changeGridSize);
 
 function toggleWall(cell) {
   if (cell.classList.contains("start") || cell.classList.contains("end"))
@@ -93,7 +104,7 @@ document.addEventListener("mouseup", () => {
 });
 
 /* ==========================================================================
-   2. KHÓA / MỞ KHÓA GIAO DIỆN KHI ANIMATION CHẠY
+   3. KHÓA / MỞ KHÓA GIAO DIỆN KHI ANIMATION CHẠY
    ========================================================================== */
 function getLockableElements() {
   return [
@@ -118,7 +129,7 @@ function unlockUI() {
 }
 
 /* ==========================================================================
-   3. HELPER DOM
+   4. HELPER DOM
    ========================================================================== */
 function getCellElement(r, c) {
   return document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
@@ -135,7 +146,7 @@ function getGridData() {
 }
 
 /* ==========================================================================
-   4. ANIMATION + DASHBOARD
+   5. ANIMATION & DASHBOARD
    ========================================================================== */
 function clearAnimation() {
   document.querySelectorAll(".visited, .path").forEach((cell) => {
@@ -143,8 +154,10 @@ function clearAnimation() {
   });
 }
 
-async function animateVisited(visitedOrder) {
-  isAnimating = true; // Khóa các nút bấm khi đang chạy
+async function animateVisited(visitedOrder, algoKey) {
+  isAnimating = true;
+  const barVisited = document.getElementById("stat-visited");
+  const modalVisited = document.getElementById(`m-${algoKey}-visited`);
 
   for (let i = 0; i < visitedOrder.length; i++) {
     if (!isAnimating) return;
@@ -160,6 +173,10 @@ async function animateVisited(visitedOrder) {
     ) {
       cell.classList.add("visited");
     }
+
+    if (barVisited) barVisited.textContent = i + 1;
+    if (modalVisited) modalVisited.textContent = i + 1;
+
     const delay = getAnimationDelay();
     if (delay > 0) {
       await sleep(delay);
@@ -167,7 +184,7 @@ async function animateVisited(visitedOrder) {
   }
 }
 
-async function animatePath(path) {
+async function animatePath(path, finalCost, algoKey) {
   for (let i = 0; i < path.length; i++) {
     if (!isAnimating) return;
 
@@ -184,15 +201,14 @@ async function animatePath(path) {
     }
     await sleep(15);
   }
-  isAnimating = false;
-}
 
-function updateDashboard(result) {
-  document.getElementById("stat-cost").textContent = result.cost ?? 0;
-  document.getElementById("stat-visited").textContent =
-    result.visited_order?.length ?? 0;
-  document.getElementById("stat-time").textContent =
-    (result.time_ms?.toFixed(2) ?? 0) + " ms";
+  if (document.getElementById("stat-cost"))
+    document.getElementById("stat-cost").textContent = finalCost ?? 0;
+  if (document.getElementById(`m-${algoKey}-cost`))
+    document.getElementById(`m-${algoKey}-cost`).textContent =
+      (finalCost ?? 0) + " ô";
+
+  isAnimating = false;
 }
 
 function showNoPathMessage() {
@@ -204,7 +220,7 @@ function showNoPathMessage() {
     banner.textContent =
       "⚠ Không tìm thấy đường đi từ điểm Bắt đầu đến điểm Kết thúc.";
     const dashboard = document.querySelector(".dashboard");
-    dashboard.insertAdjacentElement("afterend", banner);
+    if (dashboard) dashboard.insertAdjacentElement("afterend", banner);
   }
   banner.classList.add("show");
 
@@ -214,7 +230,6 @@ function showNoPathMessage() {
   }, 3500);
 }
 
-// Vẽ tường mê cung từ Randomized DFS — node.wall = {N, S, E, W}
 function renderMaze(nodes) {
   if (!nodes) return;
   nodes.forEach((node) => {
@@ -230,8 +245,72 @@ function renderMaze(nodes) {
 }
 
 /* ==========================================================================
-   5. ĐIỀU HƯỚNG DÒNG CHẠY CHÍNH
+   6. GỌI API KẾT NỐI BACKEND
    ========================================================================== */
+async function fetchMatrix() {
+  const algorithm = document.getElementById("algo-select").value;
+  const payload = {
+    rows: ROWS,
+    cols: COLS,
+    grid: buildGridPayload(),
+    start: [startPos.row, startPos.col],
+    end: [endPos.row, endPos.col],
+    algorithm: algorithm,
+    allow_diagonal: false,
+    heuristic: "manhattan",
+  };
+
+  const response = await fetch(
+    `${MAZE_API_BASE_URL}/api/solve?is_maze=${isMazeActive}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  if (!response.ok) throw new Error(`Lỗi server: ${response.status}`);
+  return response.json();
+}
+
+async function fetchMaze() {
+  const payload = {
+    rows: ROWS,
+    cols: COLS,
+    grid: buildGridPayload(),
+    start: [startPos.row, startPos.col],
+    end: [endPos.row, endPos.col],
+    algorithm: "dfs",
+    allow_diagonal: false,
+    heuristic: "manhattan",
+  };
+
+  const response = await fetch(`${MAZE_API_BASE_URL}/api/solve?is_maze=false`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Lỗi server: ${response.status}`);
+  return response.json();
+}
+
+function buildGridPayload() {
+  const rawGridData = getGridData();
+  const matrixGrid = [];
+  for (let r = 0; r < ROWS; r++) {
+    const rowItems = [];
+    for (let c = 0; c < COLS; c++) {
+      const index = r * COLS + c;
+      const cell = rawGridData[index];
+      rowItems.push({
+        blocked: cell ? cell.is_wall : false,
+        weight: cell ? parseFloat(cell.weight || 1) : 1.0,
+      });
+    }
+    matrixGrid.push(rowItems);
+  }
+  return matrixGrid;
+}
+
 async function runAlgorithm() {
   if (isAnimating) return;
 
@@ -239,13 +318,37 @@ async function runAlgorithm() {
   isAnimating = true;
   lockUI();
 
+  const algoKey = document.getElementById("algo-select").value;
+
   try {
     const result = await fetchMatrix();
 
     if (result.status === "success") {
-      await animateVisited(result.visited_order);
-      await animatePath(result.path);
-      updateDashboard(result);
+      document.getElementById("stat-time").textContent =
+        result.time_ms.toFixed(2) + " ms";
+      if (document.getElementById(`m-${algoKey}-time`)) {
+        document.getElementById(`m-${algoKey}-time`).textContent =
+          result.time_ms.toFixed(2) + " ms";
+      }
+
+      document
+        .querySelectorAll(".comparison-table tr")
+        .forEach((tr) => tr.classList.remove("row-highlight"));
+      const activeRow = document.getElementById(`modal-row-${algoKey}`);
+      if (activeRow) activeRow.classList.add("row-highlight");
+
+      document.getElementById("stat-cost").textContent = "0";
+      document.getElementById("stat-visited").textContent = "0";
+
+      await animateVisited(result.visited_order, algoKey);
+
+      if (result.path.length === 0) {
+        showNoPathMessage();
+        isAnimating = false;
+        unlockUI();
+      } else {
+        await animatePath(result.path, result.cost, algoKey);
+      }
     } else {
       alert("Lỗi thuật toán: " + result.message);
     }
@@ -272,13 +375,17 @@ async function generateMaze() {
 
   isAnimating = true;
   lockUI();
+  isMazeActive = true;
 
   try {
     const result = await fetchMaze();
 
     if (result.status === "success") {
-      renderMaze(result.path); // DFS trả path = danh sách node đã thăm
-      updateDashboard(result);
+      renderMaze(result.path);
+      document.getElementById("stat-time").textContent =
+        result.time_ms.toFixed(2) + " ms";
+      document.getElementById("stat-cost").textContent = "0";
+      document.getElementById("stat-visited").textContent = "0";
     } else {
       alert("Lỗi sinh mê cung: " + result.message);
     }
@@ -296,21 +403,60 @@ async function generateMaze() {
 function clearBoard() {
   if (isAnimating) return;
   clearAnimation();
+  isMazeActive = false;
+
   document.querySelectorAll(".cell").forEach((cell) => {
     cell.classList.remove("wall", "wall-n", "wall-s", "wall-e", "wall-w");
   });
+
   document.getElementById("stat-cost").textContent = "0";
   document.getElementById("stat-visited").textContent = "0";
   document.getElementById("stat-time").textContent = "0 ms";
+
+  const algos = ["bfs", "dijkstra", "astar"];
+  algos.forEach((k) => {
+    if (document.getElementById(`m-${k}-cost`))
+      document.getElementById(`m-${k}-cost`).textContent = "-";
+    if (document.getElementById(`m-${k}-visited`))
+      document.getElementById(`m-${k}-visited`).textContent = "-";
+    if (document.getElementById(`m-${k}-time`))
+      document.getElementById(`m-${k}-time`).textContent = "-";
+  });
+  document
+    .querySelectorAll(".comparison-table tr")
+    .forEach((tr) => tr.classList.remove("row-highlight"));
 }
 
 /* ==========================================================================
-   6. KÍCH HOẠT KHI TẢI TRANG SẴN SÀNG
+   7. KHỞI ĐỘNG HỆ THỐNG AN TOÀN (CHỈ CHẠY KHI HTML ĐÃ TẢI XONG 100%)
    ========================================================================== */
 document.addEventListener("DOMContentLoaded", () => {
+  // Chờ HTML vẽ xong mới tiến hành dựng lưới ma trận
   createGrid();
 
-  document.getElementById("btn-run").addEventListener("click", runAlgorithm);
-  document.getElementById("btn-maze").addEventListener("click", generateMaze);
-  document.getElementById("btn-clear").addEventListener("click", clearBoard);
+  // 🌟 FIX LỖI 2: Dùng if để kiểm tra, nếu thiếu nút nào trên HTML cũng không làm sập code
+  const sizeSelect = document.getElementById("size-select");
+  if (sizeSelect) sizeSelect.addEventListener("change", changeGridSize);
+
+  const btnRun = document.getElementById("btn-run");
+  if (btnRun) btnRun.addEventListener("click", runAlgorithm);
+
+  const btnMaze = document.getElementById("btn-maze");
+  if (btnMaze) btnMaze.addEventListener("click", generateMaze);
+
+  const btnClear = document.getElementById("btn-clear");
+  if (btnClear) btnClear.addEventListener("click", clearBoard);
+
+  // Setup hệ thống bảng Modal ẩn so sánh thống kê
+  const modal = document.getElementById("stats-modal");
+  const openBtn = document.getElementById("open-stats-btn");
+  const closeBtn = document.getElementById("close-stats-btn");
+
+  if (openBtn && modal && closeBtn) {
+    openBtn.addEventListener("click", () => modal.classList.add("active"));
+    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  }
 });

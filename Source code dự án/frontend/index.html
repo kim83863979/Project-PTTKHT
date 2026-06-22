@@ -22,7 +22,7 @@
         <option value="large" selected>Kích thước mặc định (30 × 50)</option>
       </select>
 
-      <button id="btn-run">Run Algorithm</button>
+      <button id="btn-run">Run</button>
 
       <div
         class="slider-container"
@@ -48,8 +48,9 @@
         />
       </div>
 
-      <button id="btn-maze">Generate Maze</button>
-      <button id="btn-clear">Clear Board</button>
+      <button id="btn-maze">Tạo ma trận</button>
+      <button id="btn-clear">Xóa ma trận</button>
+      <button id="open-stats-btn" class="btn-stats">📊 Xem so sánh</button>
     </div>
 
     <div class="dashboard" style="margin-bottom: 20px">
@@ -59,7 +60,52 @@
     </div>
 
     <div id="grid"></div>
-    <script src="api.js"></script>
+
     <script src="app.js"></script>
+
+    <div id="stats-modal" class="modal-overlay">
+      <div class="modal-content-dark">
+        <div class="modal-header">
+          <h3>📊 BẢNG ĐỐI CHIẾU HIỆU NĂNG LƯU VẾT</h3>
+          <button id="close-stats-btn" class="modal-close-x">&times;</button>
+        </div>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Thuật toán</th>
+              <th>Chi phí (Cost)</th>
+              <th>Số ô đã duyệt (Visited)</th>
+              <th>Thời gian chạy (Time)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="modal-row-bfs">
+              <td class="algo-name">Breadth-First Search (BFS)</td>
+              <td id="m-bfs-cost">-</td>
+              <td id="m-bfs-visited">-</td>
+              <td id="m-bfs-time">-</td>
+            </tr>
+            <tr id="modal-row-dijkstra">
+              <td class="algo-name">Dijkstra Algorithm</td>
+              <td id="m-dijkstra-cost">-</td>
+              <td id="m-dijkstra-visited">-</td>
+              <td id="m-dijkstra-time">-</td>
+            </tr>
+            <tr id="modal-row-astar">
+              <td class="algo-name">A* Search Algorithm</td>
+              <td id="m-astar-cost">-</td>
+              <td id="m-astar-visited">-</td>
+              <td id="m-astar-time">-</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="modal-footer">
+          <p>
+            * Dữ liệu tự động lưu vết qua mỗi lượt chạy thuật toán khác nhau
+            trên cùng một đề bài.
+          </p>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
