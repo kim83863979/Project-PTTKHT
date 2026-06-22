@@ -16,6 +16,11 @@
         <option value="dijkstra">Dijkstra Algorithm</option>
         <option value="astar">A* Algorithm</option>
       </select>
+      <select id="size-select" class="form-select">
+        <option value="small">Kích thước nhỏ (20 × 20)</option>
+        <option value="medium">Kích thước vừa (20 × 35)</option>
+        <option value="large" selected>Kích thước mặc định (30 × 50)</option>
+      </select>
 
       <button id="btn-run">Run Algorithm</button>
 
@@ -37,9 +42,9 @@
           type="range"
           id="speed-slider"
           min="1"
-          max="10"
-          value="5"
-          style="cursor: pointer"
+          max="100"
+          value="50"
+          class="form-range"
         />
       </div>
 

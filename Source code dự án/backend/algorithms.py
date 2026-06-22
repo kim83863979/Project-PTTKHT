@@ -1,8 +1,41 @@
+from collections import deque
 import heapq
 
 def manhattan_distance(node_a, node_b):
     """Hàm la bàn tính khoảng cách ước lượng cho thuật toán A*"""
     return abs(node_a.row - node_b.row) + abs(node_a.col - node_b.col)
+
+
+def bfs_algorithm(grid, start_node, end_node, get_neighbors_func):
+    # Khởi tạo/Làm sạch trạng thái của ma trận Node trước khi chạy
+    for row in grid:
+        for node in row:
+            node.parent = None
+
+    # Khởi tạo Hàng đợi (Queue) đặc trưng cho BFS sử dụng deque
+    queue = deque([start_node])
+    visited = {start_node}
+    visited_nodes_order = []
+
+    while queue:
+        current = queue.popleft()
+
+        # Lưu lại thứ tự quét (Bỏ qua điểm đầu và cuối để tránh đè màu giao diện)
+        if current != start_node and current != end_node:
+            visited_nodes_order.append([current.row, current.col])
+
+        # Kịch bản thành công: Chạm tới đích
+        if current == end_node:
+            return visited_nodes_order, True
+
+        # Duyệt các ô hàng xóm lân cận thông qua hàm gánh biên
+        for neighbor in get_neighbors_func(current, grid):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                neighbor.parent = current  # Lưu vết ô cha trực tiếp vào Node phục vụ utils.py
+                queue.append(neighbor)
+
+    return visited_nodes_order, False
 
 
 def dijkstra_algorithm(grid, start_node, end_node, get_neighbors_func):
@@ -50,7 +83,6 @@ def dijkstra_algorithm(grid, start_node, end_node, get_neighbors_func):
     return visited_nodes_order, False
 
 
-# 🔥 ĐÃ SỬA: Thêm get_neighbors_func vào danh sách tham số đầu vào
 def a_star_algorithm(grid, start_node, end_node, get_neighbors_func):
     """
     Thuật toán A* chuẩn hóa theo cấu trúc đối tượng Node
@@ -83,7 +115,7 @@ def a_star_algorithm(grid, start_node, end_node, get_neighbors_func):
         if current == end_node:
             return visited_nodes_order, True
 
-        # Duyệt các ô hàng xóm lân cận (4 hướng) thông qua hàm của Gia Bân
+        # Duyệt các ô hàng xóm lân cận (4 hướng) 
         for neighbor in get_neighbors_func(current, grid):
             tentative_g_score = current.g_cost + neighbor.weight
 
