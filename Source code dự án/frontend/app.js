@@ -279,7 +279,7 @@ async function fetchMaze() {
     grid: buildGridPayload(),
     start: [startPos.row, startPos.col],
     end: [endPos.row, endPos.col],
-    algorithm: "dfs",
+    algorithm: "Rd_dfs",
     allow_diagonal: false,
     heuristic: "manhattan",
   };
