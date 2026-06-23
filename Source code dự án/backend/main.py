@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import MatrixPayload
-from algorithms import bfs_algorithm, dijkstra_algorithm, a_star_algorithm
+from algorithms import bfs_algorithm, dijkstra_algorithm, a_star_algorithm, dfs_algorithm
 from utils import reconstruct_path
 from maze import explore, maze_to_node_grid, scale_point, unscale_path
 
@@ -45,15 +45,14 @@ def solve_matrix(data: MatrixPayload):
  
         start_time = time.perf_counter()
  
-        # ── 1. LUỒNG SINH MÊ CUNG RANDOMIZED DFS (algorithm == "dfs") ──
-        if data.algorithm == "dfs":
+        # Randomized DFS: sinh mê cung
+        if data.algorithm == "Rd_dfs":
             for r in range(data.rows):
                 for c in range(data.cols):
                     node_grid[r][c].wall = {"N": True, "S": True, "E": True, "W": True}
- 
             explore(sr, sc, node_grid, data.rows, data.cols)
- 
-            # Lưu lại cấu trúc vách ngăn vào bộ nhớ RAM máy chủ
+
+            # Lưu lại để dùng cho BFS/DFS/A*/Dijkstra 
             LAST_MAZE["node_grid"] = node_grid
             LAST_MAZE["rows"] = data.rows
             LAST_MAZE["cols"] = data.cols
@@ -69,27 +68,24 @@ def solve_matrix(data: MatrixPayload):
             ]
  
             return {
-                "status":        "success",
+                "status": "success",
                 "visited_order": [],
-                "path":          path_json,
-                "cost":          0,
-                "time_ms":       execution_time_ms,
+                "path": path_json,
+                "cost": 0,
+                "time_ms": execution_time_ms,
             }
- 
-        # ── 2. LUỒNG TÌM ĐƯỜNG ĐÃ ĐƯỢC KHÔI PHỤC CHUẨN XÁC ──
         use_maze = (
             LAST_MAZE["node_grid"] is not None
             and LAST_MAZE["rows"] == data.rows
             and LAST_MAZE["cols"] == data.cols
         )
- 
         if use_maze:
-            # Có mê cung DFS hợp lệ -> Tiến hành phóng đại lưới để biến vách ngăn thành tường khối
+            # Có mê cung từ DFS -> chuyển sang lưới gấp đôi
             work_grid, wrows, wcols = maze_to_node_grid(LAST_MAZE["node_grid"], data.rows, data.cols)
             wsr, wsc = scale_point(sr, sc)
             wer, wec = scale_point(er, ec)
             
-            def neighbor_fn(node, grid):
+            def current_neighbors_func(node, grid):
                 neighbors = []
                 for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                     nr, nc = node.row + dr, node.col + dc
@@ -98,8 +94,6 @@ def solve_matrix(data: MatrixPayload):
                         if not nb.is_blocked:
                             neighbors.append(nb)
                 return neighbors
-                
-            current_neighbors_func = neighbor_fn
         else:
             # Không có mê cung -> Chạy trên lưới trống hoặc lưới người dùng tự vẽ tay
             work_grid = node_grid
@@ -109,13 +103,15 @@ def solve_matrix(data: MatrixPayload):
         start_node = work_grid[wsr][wsc]
         end_node   = work_grid[wer][wec]
         
-        # Định tuyến thuật toán lõi
+        # Tìm đường: BFS/ DFS/ A* / Dijkstra
         if data.algorithm == "astar":
             visited_order, success = a_star_algorithm(work_grid, start_node, end_node, current_neighbors_func)
         elif data.algorithm == "dijkstra":
             visited_order, success = dijkstra_algorithm(work_grid, start_node, end_node, current_neighbors_func)
         elif data.algorithm == "bfs":
             visited_order, success = bfs_algorithm(work_grid, start_node, end_node, current_neighbors_func)
+        elif data.algorithm == "dfs":
+            visited_order, success = dfs_algorithm(work_grid, start_node, end_node, current_neighbors_func)
         else:
             return {"status": "error", "message": f"Thuật toán {data.algorithm} chưa được tích hợp."}
             
@@ -133,11 +129,21 @@ def solve_matrix(data: MatrixPayload):
                 path = path[1:-1]
  
             if use_maze:
-                path          = unscale_path(path)
+                path = unscale_path(path)
                 visited_order = unscale_path(visited_order)
- 
+        else:
+            if use_maze:
+                visited_order = unscale_path(visited_order)
+            return{
+                "status": "no_path",
+                "message": "không tìm thấy đường đi",
+                "visited_order": visited_order,
+                "path":          [],
+                "cost":          0,
+                "time_ms":       execution_time_ms,
+            }
         return {
-            "status":        "success",
+            "status": "success",
             "visited_order": visited_order,
             "path":          path,
             "cost":          cost if success else 0,
