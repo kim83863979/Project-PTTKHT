@@ -82,7 +82,7 @@ def dijkstra_algorithm(grid, start_node, end_node, get_neighbors_func):
 
     return visited_nodes_order, False
 
-
+# Thêm get_neighbors_func vào danh sách tham số đầu vào
 def a_star_algorithm(grid, start_node, end_node, get_neighbors_func):
     """
     Thuật toán A* chuẩn hóa theo cấu trúc đối tượng Node
@@ -128,4 +128,31 @@ def a_star_algorithm(grid, start_node, end_node, get_neighbors_func):
                 count += 1
                 heapq.heappush(open_set, (neighbor.f_cost, count, neighbor))
 
+    return visited_nodes_order, False
+def dfs_algorithm(grid, start_node, end_node, get_neighbors_func):
+    """
+    Thuật toán DFS chuẩn hóa theo cấu trúc đối tượng Node
+    """
+    # Khởi tạo/Làm sạch trạng thái của ma trận Node trước khi chạy
+    for row in grid:
+        for node in row:
+            node.parent = None
+            node.visited = False
+    stack = [start_node]
+    start_node.visited = True
+    visited_nodes_order = []
+    while stack:
+        # POP đỉnh stack - đi theo chiều sâu
+        current = stack.pop()    
+        # lưu thứ tự duyệt
+        if current != start_node and current != end_node:
+            visited_nodes_order.append([current.row, current.col])
+        if current == end_node:
+            return visited_nodes_order, True
+        # duyệt hàng xóm
+        for neighbor in get_neighbors_func(current, grid):
+            if not neighbor.visited:
+                neighbor.visited = True
+                neighbor.parent = current
+                stack.append(neighbor)
     return visited_nodes_order, False
