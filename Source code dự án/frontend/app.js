@@ -413,7 +413,8 @@ function clearBoard() {
   document.getElementById("stat-visited").textContent = "0";
   document.getElementById("stat-time").textContent = "0 ms";
 
-  const algos = ["bfs", "dijkstra", "astar"];
+  // 🌟 Đã thêm "dfs" vào danh sách để dọn dẹp số liệu khi xóa bảng
+  const algos = ["bfs", "dfs", "dijkstra", "astar"];
   algos.forEach((k) => {
     if (document.getElementById(`m-${k}-cost`))
       document.getElementById(`m-${k}-cost`).textContent = "-";
